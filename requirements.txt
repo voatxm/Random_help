@@ -1,5 +1,5 @@
 TgCrypto
-pyrofork
+wpyrogram
 zipfile2
 asyncio
 Pillow
