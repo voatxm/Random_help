@@ -210,6 +210,15 @@ async def process_files():
             file_queue.task_done()
 
 
+
+if __name__ == '__main__':
+    app.start()  # Start the Pyrogram client
+    asyncio.run(process_files())  # Start processing files
+    try:
+        app.idle()  # Keep the bot running
+    finally:
+        app.stop()  # Stop the bot on shutdown
+"""     
 if __name__ == '__main__':
     app.start()
     loop = asyncio.get_event_loop()
@@ -218,3 +227,5 @@ if __name__ == '__main__':
         loop.run_forever()
     finally:
         app.stop()
+   """
+
