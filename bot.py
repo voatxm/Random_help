@@ -93,7 +93,7 @@ def convert_images_to_pdf(image_files, pdf_output_path, compression_quality=40):
 
     # Define the path to the thumbnail image (same directory as the script)
     script_dir = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the script
-    thumb_image = os.path.join(script_dir, "thumb_img.jpg")
+    thumb_image = os.path.join(script_dir, "thumb.jpg")
 
     # Check if the thumbnail exists
     if not os.path.exists(thumb_image):
