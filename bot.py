@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Initialize the Pyrogram Client
 API_ID = 26634100  # Replace with your actual API ID
 API_HASH = "9ea49405d5a93e784114c469f5ce4bbd"  # Replace with your actual API Hash
-BOT_TOKEN = "7643757891:AAEHeO3UfkjzJ7JChAGR9Bu4aeAwKfpkMWk"  # Replace with your actual Bot Token
+BOT_TOKEN = "7643757891:AAHPp1popCKZgkYCM7nhTx4uO2KZSZuFtf4"  # Replace with your actual Bot Token
 
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
