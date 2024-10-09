@@ -1,3 +1,4 @@
+TgCrypto
 pyrofork
 zipfile2
 asyncio
