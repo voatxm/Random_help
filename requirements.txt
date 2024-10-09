@@ -1,4 +1,5 @@
 pyrofork
+zipfile2
 asyncio
 Pillow
 reportlab
