@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Initialize the Pyrogram Client
 API_ID = 26634100  # Replace with your actual API ID
 API_HASH = "9ea49405d5a93e784114c469f5ce4bbd"  # Replace with your actual API Hash
-BOT_TOKEN = "7643757891:AAHPp1popCKZgkYCM7nhTx4uO2KZSZuFtf4"  # Replace with your actual Bot Token
+BOT_TOKEN = "8063572127:AAEW7DuIhZIcRWWDfvkzXLL658DRQqngdAo"  # Replace with your actual Bot Token
 
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
@@ -64,49 +64,79 @@ async def extract_images(zip_path: str) -> list:
 
     return image_files
 
-def compress_image(image_path: str, output_path: str, quality: int = 75):
-    """Compress the image and save it to the output path."""
-    with Image.open(image_path) as img:
-        img.save(output_path, format="JPEG", quality=quality, optimize=True)
+from reportlab.pdfgen import canvas
+from PIL import Image
+import os
 
-def convert_images_to_pdf(image_files, pdf_output_path):
+def compress_image(image_path, output_path, quality=40, target_width=None):
+    """Compress the image by resizing and reducing its quality."""
+    try:
+        img = Image.open(image_path)
+        img_width, img_height = img.size
+
+        # If a target width is specified, adjust the height to maintain the aspect ratio
+        if target_width:
+            new_height = int((target_width / img_width) * img_height)
+            img = img.resize((target_width, new_height), Image.LANCZOS)
+
+        # Save the compressed image
+        img.save(output_path, "JPEG", quality=quality, optimize=True)
+        return output_path
+    except Exception as e:
+        logger.error(f"Error compressing image {image_path}: {e}")
+        return image_path  # Return original image if compression fails
+
+def convert_images_to_pdf(image_files, pdf_output_path, compression_quality=40):
     if not image_files:
         logger.warning('No images provided for PDF conversion.')
         return False
 
-    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Define the path to the thumbnail image (same directory as the script)
+    script_dir = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the script
     thumb_image = os.path.join(script_dir, "thumb.jpg")
 
+    # Check if the thumbnail exists
     if not os.path.exists(thumb_image):
         logger.error(f"Thumbnail image {thumb_image} not found.")
         return False
 
+    # Create a PDF document
     c = canvas.Canvas(pdf_output_path)
 
+    # Set the target width (e.g., the width of the smallest image)
+    target_width = min(Image.open(image_file).width for image_file in image_files)
+
+    # Function to draw an image on the canvas with the same width, height adjusted proportionally
     def draw_image(image_file):
         try:
             img = Image.open(image_file)
             img_width, img_height = img.size
-            c.setPageSize((img_width, img_height))
-            c.drawImage(image_file, 0, 0, width=img_width, height=img_height)
-            c.showPage()
+            # Calculate the new height maintaining the aspect ratio
+            new_height = int(target_width * img_height / img_width)
+            c.setPageSize((target_width, new_height))
+            c.drawImage(image_file, 0, 0, width=target_width, height=new_height)
+            c.showPage()  # Create a new page for each image
         except Exception as e:
             logger.error(f"Failed to process image {image_file}: {e}")
 
-    draw_image(thumb_image)
+    # Compress and add the thumbnail at the start
+    compressed_thumb = compress_image(thumb_image, "compressed_thumb.jpg", quality=compression_quality, target_width=target_width)
+    draw_image(compressed_thumb)
 
-    # Compress and draw each main image
+    # Process and compress the main images
     for image_file in image_files:
-        compressed_image_path = image_file.replace(".", "_compressed.")
-        compress_image(image_file, compressed_image_path, quality=75)  # Change quality as needed
-        draw_image(compressed_image_path)
-        os.remove(compressed_image_path)  # Remove the compressed version after use
+        compressed_image = compress_image(image_file, f"compressed_{os.path.basename(image_file)}", quality=compression_quality, target_width=target_width)
+        draw_image(compressed_image)
 
-    draw_image(thumb_image)
+    # Add the compressed thumbnail at the end
+    draw_image(compressed_thumb)
 
+    # Save the PDF
     c.save()
-    logger.info(f"PDF created at {pdf_output_path}")
+    logger.info(f"Compressed PDF created at {pdf_output_path}")
     return True
+
+
 
 def cleanup_files(*file_paths):
     for file_path in file_paths:
